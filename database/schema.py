@@ -22,22 +22,21 @@ CREATE TABLE IF NOT EXISTS competitions (
 
 CREATE TABLE IF NOT EXISTS applicants (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    competition_id INTEGER NOT NULL,
     unique_code INTEGER NOT NULL,
     current_place INTEGER,
     updated_at TEXT,
-    competition_id INTEGER NOT NULL,
-    FOREIGN KEY (competition_id) REFERENCES competitions(id),
-    UNIQUE(unique_code, competition_id)
+    UNIQUE(competition_id, unique_code),
+    FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
     tg_user_id INTEGER NOT NULL,
-    applicant_id INTEGER NOT NULL,
+    competition_id INTEGER NOT NULL,
     notifications_enabled INTEGER NOT NULL DEFAULT 1,
-    FOREIGN KEY (tg_user_id) REFERENCES users(tg_user_id),
-    FOREIGN KEY (applicant_id) REFERENCES applicants(id),
-    UNIQUE(tg_user_id, applicant_id)
+    PRIMARY KEY (tg_user_id, competition_id),
+    FOREIGN KEY (tg_user_id) REFERENCES users(tg_user_id) ON DELETE CASCADE,
+    FOREIGN KEY (competition_id) REFERENCES competitions(id) ON DELETE CASCADE
 );
 """
 

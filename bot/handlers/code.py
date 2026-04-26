@@ -6,21 +6,19 @@ from database.repository import set_user_code
 
 router = Router()
 
+
 @router.message(Command("code"))
 async def code_handler(message: Message):
-    args = message.text.split(maxsplit=1)
+    args = message.text.split()
 
-    if len(args) < 2:
-        await message.answer(
-            "Использование:\n"
-            "/code <ваш_unique_code>"
-        )
+    if len(args) != 2:
+        await message.answer("Использование: /code <unique_code>")
         return
 
-    code_str = args[1].strip()
+    code_str = args[1]
 
     if not code_str.isdigit():
-        await message.answer("❌ unique_code должен состоять только из цифр.")
+        await message.answer("❌ Код должен состоять только из цифр")
         return
 
     unique_code = int(code_str)
@@ -28,5 +26,6 @@ async def code_handler(message: Message):
     await set_user_code(message.from_user.id, unique_code)
 
     await message.answer(
-        f"✅ Ваш unique_code сохранён: {unique_code}"
+        f"✅ Ваш unique_code сохранён: {unique_code}\n"
+        f"Теперь можно использовать /track <ссылка>"
     )

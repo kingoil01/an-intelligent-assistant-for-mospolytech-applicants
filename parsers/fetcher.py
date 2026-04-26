@@ -47,8 +47,6 @@ def sync_fetch_rating(select1, spec_code, edu_form, edu_fin):
     response.encoding = "utf-8"
     html = response.text
 
-    print("SERVER RESPONSE:", html[:300])
-
     soup = BeautifulSoup(html, "lxml")
     table = soup.find("table", class_="check")
 

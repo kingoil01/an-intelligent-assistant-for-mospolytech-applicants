@@ -9,6 +9,8 @@ from database.repository import (
     insert_applicant,
     update_applicant_place,
     update_competition_last_updated,
+    get_subscribers_by_competition,
+    get_user_code
 )
 from parsers.fetcher import fetch_rating
 
@@ -61,15 +63,19 @@ async def update_competition(
                 and old_place is not None
                 and old_place != new_place
             ):
-                subscribers = await get_subscribers_by_applicant_id(existing["id"])
-                if subscribers:
-                    await notify_callback(
-                        subscribers,
-                        code,
-                        old_place,
-                        new_place,
-                        competition_name,
-                    )
+                subscribers = await get_subscribers_by_competition(comp_id)
+
+                for user_id in subscribers:
+                    user_code = await get_user_code(user_id)
+
+                    if user_code == code:
+                        await notify_callback(
+                            [user_id],
+                            code,
+                            old_place,
+                            new_place,
+                            competition_name,
+                        )
 
     for code, existing in existing_by_code.items():
         if code in seen_codes:
