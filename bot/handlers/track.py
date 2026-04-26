@@ -3,38 +3,40 @@ from aiogram.filters import Command
 from aiogram.types import Message
 
 from services.track_service import track_competition
+from database.repository import get_user_code
 from utils.qs import extract_qs
 
 router = Router()
 
-
 @router.message(Command("track"))
 async def track_handler(message: Message):
-    args = message.text.split(maxsplit=2)
+    args = message.text.split(maxsplit=1)
 
-    if len(args) < 3:
+    if len(args) < 2:
         await message.answer(
-            "Использование: /track <ссылка> <unique_code>\n"
+            "Использование:\n"
+            "/track <ссылка>\n\n"
             "Пример:\n"
-            "/track https://mospolytech.ru/.../?qs=... 1234567"
+            "/track https://mospolytech.ru/.../?qs=..."
         )
         return
 
-    url = args[1].strip()
-    code_str = args[2].strip()
-
-    if not code_str.isdigit():
-        await message.answer("❌ unique_code должен состоять только из цифр.")
-        return
-
-    unique_code = int(code_str)
-    qs = extract_qs(url)
+    qs = extract_qs(args[1].strip())
 
     if not qs:
-        await message.answer("❌ Не удалось найти qs в ссылке.")
+        await message.answer("❌ Не удалось извлечь qs из ссылки.")
         return
 
-    await message.answer("⏳ Обрабатываю конкурс...")
+    unique_code = await get_user_code(message.from_user.id)
+
+    if not unique_code:
+        await message.answer(
+            "❌ Сначала задайте свой unique_code:\n"
+            "/code 1234567"
+        )
+        return
+
+    await message.answer("⏳ Подключаю конкурс...")
 
     try:
         applicant, competition = await track_competition(
@@ -43,21 +45,18 @@ async def track_handler(message: Message):
             unique_code=unique_code,
         )
     except Exception as e:
-        await message.answer(f"❌ Не удалось обработать конкурс: {e}")
+        await message.answer(f"❌ Ошибка: {e}")
         return
 
     if applicant is None:
         await message.answer(
-            f"❌ Код {unique_code} не найден в данном списке."
+            f"❌ Ваш код {unique_code} не найден в этом конкурсе."
         )
         return
-
-    current_place = applicant["current_place"]
-    current_place_text = str(current_place) if current_place is not None else "нет данных"
 
     await message.answer(
         "✅ Подписка оформлена!\n\n"
         f"Конкурс: {competition['name']}\n"
-        f"Код: {unique_code}\n"
-        f"Текущее место: {current_place_text}"
+        f"Ваш код: {unique_code}\n"
+        f"Текущее место: {applicant['current_place']}"
     )

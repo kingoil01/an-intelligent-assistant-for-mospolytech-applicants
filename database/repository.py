@@ -9,6 +9,25 @@ from database.db import connect_db
 def utc_now() -> str:
     return datetime.utcnow().isoformat(timespec="seconds")
 
+async def set_user_code(user_id: int, unique_code: int):
+    async with connect_db() as db:
+        await db.execute("""
+            INSERT INTO users (tg_user_id, unique_code)
+            VALUES (?, ?)
+            ON CONFLICT(tg_user_id)
+            DO UPDATE SET unique_code = excluded.unique_code
+        """, (user_id, unique_code))
+        await db.commit()
+
+async def get_user_code(user_id: int):
+    async with connect_db() as db:
+        cur = await db.execute("""
+            SELECT unique_code
+            FROM users
+            WHERE tg_user_id = ?
+        """, (user_id,))
+        row = await cur.fetchone()
+        return row["unique_code"] if row else None
 
 async def get_competition_by_qs(qs: str):
     async with connect_db() as db:

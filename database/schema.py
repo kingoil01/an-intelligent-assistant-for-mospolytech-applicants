@@ -6,7 +6,8 @@ CREATE_TABLES = """
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS users (
-    tg_user_id INTEGER PRIMARY KEY
+    tg_user_id INTEGER PRIMARY KEY,
+    unique_code INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS competitions (
@@ -16,7 +17,7 @@ CREATE TABLE IF NOT EXISTS competitions (
     spec_code TEXT NOT NULL,
     edu_form TEXT NOT NULL,
     edu_fin TEXT NOT NULL,
-    last_updated DATETIME
+    last_updated TEXT
 );
 
 CREATE TABLE IF NOT EXISTS applicants (
@@ -25,14 +26,17 @@ CREATE TABLE IF NOT EXISTS applicants (
     current_place INTEGER,
     updated_at TEXT,
     competition_id INTEGER NOT NULL,
-    FOREIGN KEY (competition_id) REFERENCES competitions(id)
+    FOREIGN KEY (competition_id) REFERENCES competitions(id),
+    UNIQUE(unique_code, competition_id)
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    tg_user_id INTEGER NOT NULL REFERENCES users(tg_user_id),
-    applicant_id INTEGER NOT NULL REFERENCES applicants(id),
+    tg_user_id INTEGER NOT NULL,
+    applicant_id INTEGER NOT NULL,
     notifications_enabled INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (tg_user_id) REFERENCES users(tg_user_id),
+    FOREIGN KEY (applicant_id) REFERENCES applicants(id),
     UNIQUE(tg_user_id, applicant_id)
 );
 """

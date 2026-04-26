@@ -21,6 +21,8 @@ async def track_competition(user_id: int, qs: str, unique_code: int):
         params["edu_fin"],
     )
 
+    is_new_competition = False
+
     if competition:
         comp_id = competition["id"]
     else:
@@ -33,9 +35,11 @@ async def track_competition(user_id: int, qs: str, unique_code: int):
         )
 
         competition = await get_competition_by_id(comp_id)
+        is_new_competition = True
 
     # обновляем таблицу конкурса
-    await update_competition(comp_id)
+    if is_new_competition:
+        await update_competition(comp_id)
 
     # ищем абитуриента
     applicant = await get_applicant_by_code_and_comp(unique_code, comp_id)
