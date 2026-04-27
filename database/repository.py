@@ -283,6 +283,7 @@ async def get_user_subscriptions_with_places(user_id: int):
     async with connect_db() as db:
         cur = await db.execute("""
             SELECT
+                c.id AS competition_id,
                 c.name AS competition_name,
                 u.unique_code,
                 a.current_place,
@@ -300,3 +301,15 @@ async def get_user_subscriptions_with_places(user_id: int):
             ORDER BY c.name ASC
         """, (user_id,))
         return await cur.fetchall()
+
+
+async def delete_subscription(user_id: int, competition_id: int):
+    async with connect_db() as db:
+        await db.execute(
+            """
+            DELETE FROM subscriptions
+            WHERE tg_user_id = ? AND competition_id = ?
+            """,
+            (user_id, competition_id),
+        )
+        await db.commit()

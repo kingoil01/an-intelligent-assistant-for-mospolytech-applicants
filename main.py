@@ -8,6 +8,7 @@ from bot.handlers.place import router as place_router
 from bot.handlers.start import router as start_router
 from bot.handlers.track import router as track_router
 from bot.handlers.code import router as code_router
+from bot.handlers.untrack import router as untrack_router
 from config.settings import BOT_TOKEN, UPDATE_INTERVAL_MINUTES
 from database.schema import init_db
 from services.update_scheduler import start_scheduler
@@ -28,6 +29,7 @@ async def main() -> None:
     dp.include_router(track_router)
     dp.include_router(place_router)
     dp.include_router(code_router)
+    dp.include_router(untrack_router)
 
     scheduler_task = asyncio.create_task(
         start_scheduler(bot=bot, interval_minutes=UPDATE_INTERVAL_MINUTES)
